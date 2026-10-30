@@ -435,7 +435,7 @@ footer {
 """
 
     degiskenler = {
-        "__VERSION__": "1.0",
+   "__VERSION__": guvenli(rapor.get("versiyon", "1.0")),
         "__TARGET__": guvenli(rapor.get("hedef", "-")),
         "__DATE__": guvenli(rapor.get("tarih", "-")),
         "__TOTAL__": str(toplam),

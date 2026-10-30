@@ -24,3 +24,5 @@ reports/*.html
 # Operating system
 .DS_Store
 Thumbs.db
+
+ShadowNet-source.zip
