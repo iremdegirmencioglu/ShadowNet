@@ -1,4 +1,5 @@
 
+from scanner_config import get_config
 import socket
 import json
 from datetime import datetime
@@ -12,7 +13,7 @@ from html_report import html_rapor_olustur
 
 
 # ==========================================
-# SHADOWNET v0.9 - SECURITY ANALYZER
+## SHADOWNET v1.1 - SECURITY ANALYZER
 # ==========================================
 
 HEDEF = "127.0.0.1"
@@ -27,16 +28,11 @@ SERVISLER = {
     8080: "HTTP-Alternatif"
 }
 
-
-def port_tara(port):
+def port_tara(port, hedef="127.0.0.1", timeout=1.0):
     try:
-        with socket.socket(
-            socket.AF_INET,
-            socket.SOCK_STREAM
-        ) as baglanti:
-
-            baglanti.settimeout(1)
-            sonuc = baglanti.connect_ex((HEDEF, port))
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as baglanti:
+            baglanti.settimeout(timeout)
+            sonuc = baglanti.connect_ex((hedef, port))
 
             if sonuc == 0:
                 return "ACIK"
@@ -46,19 +42,23 @@ def port_tara(port):
     except OSError:
         return "HATA"
 
-
 def main():
+    config = get_config()
+
+    hedef = config.target
+    portlar = config.ports
+    timeout = config.timeout
 
     print("=" * 60)
-    print("SHADOWNET v0.9 - SECURITY ANALYZER")
+    print("SHADOWNET v1.1 - SECURITY ANALYZER")
     print("=" * 60)
 
     sonuclar = []
 
     # 1. PORT TARAMASI
-    for port, servis in SERVISLER.items():
-
-        durum = port_tara(port)
+    for port in config.ports:
+        servis = SERVISLER.get(port, "Bilinmeyen Servis")
+        durum = port_tara(port, config.target, config.timeout)
 
         # 2. RISK ANALIZI
         risk = risk_analiz(port, durum)
@@ -147,11 +147,17 @@ def main():
             print("  - Oneri bulunmuyor.")
 
     # 7. JSON RAPORUNU OLUSTUR
+    # 7. JSON RAPORUNU OLUSTUR
     rapor = {
         "proje": "ShadowNet",
-        "versiyon": "0.9",
-        "hedef": HEDEF,
+        "versiyon": "1.1",
+        "hedef": hedef,
         "tarih": datetime.now().isoformat(),
+        "tarama_ayarlari": {
+            "portlar": portlar,
+            "timeout": timeout,
+            "toplam_port": len(portlar)
+        },
         "sonuclar": sonuclar
     }
 
@@ -213,10 +219,10 @@ def main():
 
     # 11. RAPOR OZETI
     print("\n" + "=" * 60)
-    print("SHADOWNET v0.9 - GUVENLIK RAPORU")
+    print("SHADOWNET v1.1 - GUVENLIK RAPORU")
     print("=" * 60)
 
-    print(f"Hedef: {HEDEF}")
+    print(f"Hedef: {hedef}")
     print(f"Kontrol edilen port: {len(sonuclar)}")
     print(f"Acik port sayisi: {acik_sayisi}")
     print(f"Risk inceleme sayisi: {inceleme_sayisi}")
